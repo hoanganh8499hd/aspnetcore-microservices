@@ -1,9 +1,19 @@
+using Basket.API;
+using Basket.API.Extensions;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Host.AddAppConfigurations();
+
 // Add services to the container.
+builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddAutoMapper(cfg => cfg.AddProfile(new MappingProfile()));
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore-swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
