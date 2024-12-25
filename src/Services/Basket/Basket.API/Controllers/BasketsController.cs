@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using Basket.API.Entities;
 using Basket.API.Repositories.Interfaces;
+using EventBus.Messages.IntegrationEvents.Events;
+using MassTransit;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
@@ -14,41 +16,63 @@ namespace Basket.API.Controllers
     public class BasketsController : ControllerBase
     {
         private readonly IBasketRepository _basketRepository;
+        private readonly IMapper _mapper;
+        private readonly IPublishEndpoint _publicEndpoint;
 
-        public BasketsController(IBasketRepository basketRepository)
+        public BasketsController(IBasketRepository basketRepository, IMapper mapper, IPublishEndpoint publicEndpoint)
         {
-            _basketRepository = basketRepository ?? throw new ArgumentNullException(nameof(basketRepository));
+            _basketRepository = basketRepository;
+            _mapper = mapper;
+            _publicEndpoint = publicEndpoint;
         }
 
-        [HttpGet("{username}", Name = "GetBasket")]
+        [HttpGet("{userName}")]
         [ProducesResponseType(typeof(Cart), (int)HttpStatusCode.OK)]
-        public async Task<ActionResult<Cart>> GetBasket([Required] string username)
+        public async Task<ActionResult<Cart>> GetBasketAsync(string userName)
         {
-            var result = await _basketRepository.GetBasketByUserName(username);
-
-            return Ok(result ?? new Cart(username));
+            var result = await _basketRepository.GetBasketByUserName(userName);
+            return Ok(result ?? new Cart(userName));
         }
 
-        [HttpPost(Name = "UpdateBasket")]
+        [HttpPost]
         [ProducesResponseType(typeof(Cart), (int)HttpStatusCode.OK)]
-        public async Task<ActionResult<Cart>> UpdateBasket([FromBody] Cart cart)
+        public async Task<ActionResult<Cart>> UpdateBasketAsync(Cart cart)
         {
+            //a cached object will be expired if it not being requested for a defined amount of time period.
             var options = new DistributedCacheEntryOptions()
-                .SetAbsoluteExpiration(DateTime.UtcNow.AddHours(10));
-            //     .SetSlidingExpiration(TimeSpan.FromMinutes(10));
-
+                    //.SetAbsoluteExpiration(DateTime.UtcNow.AddMinutes(2))
+                    .SetSlidingExpiration(TimeSpan.FromMinutes(60));
 
             var result = await _basketRepository.UpdateBasket(cart, options);
-
             return Ok(result);
         }
 
-        [HttpDelete("{username}", Name = "DeleteBasket")]
+        [HttpDelete("{userName}")]
         [ProducesResponseType(typeof(bool), (int)HttpStatusCode.OK)]
-        public async Task<ActionResult<bool>> DeleteBasket([Required] string username)
+        public async Task<ActionResult<bool>> DeleteBasketAsync(string userName)
         {
-            var result = await _basketRepository.DeleteBasketFromUserName(username);
+            var result = await _basketRepository.DeleteBasketFromUserName(userName);
             return Ok(result);
+        }
+
+        [Route("[action]")]
+        [HttpPost]
+        [ProducesResponseType((int)HttpStatusCode.Accepted)]
+        [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+        public async Task<ActionResult> CheckoutAsync(BasketCheckout basketCheckout)
+        {
+            var basket = await _basketRepository.GetBasketByUserName(basketCheckout.UserName);
+            if (basket == null) return NotFound();
+
+            // publish checkout event to EventBus Message
+            var eventMessage = _mapper.Map<BasketCheckoutEvent>(basketCheckout);
+            eventMessage.TotalPrice = basket.TotalPrice;
+            await _publicEndpoint.Publish(eventMessage);
+
+            // remove the basket
+            await _basketRepository.DeleteBasketFromUserName(basket.UserName);
+
+            return Accepted();
         }
     }
 }

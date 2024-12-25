@@ -7,11 +7,14 @@ using System.Text;
 using System.Threading.Tasks;
 using Contracts.Domains;
 using Ordering.Domain.Enums;
+using Ordering.Domain.OrderAggregate.Events;
+using Contracts.Common.Events;
+using Contracts.Common.Interfaces;
 
 namespace Ordering.Domain.Entities
 {
 
-    public class Order : EntityAuditBase<long>
+    public class Order : AuditableEventEntity<long>, IEventEntity
     {
         [Required]
         [Column(TypeName = "nvarchar(150)")]
@@ -46,6 +49,19 @@ namespace Ordering.Domain.Entities
         [NotMapped]
         public string FullName => FirstName + " " + LastName;
 
+        public Order AddedOrder()
+        {
+            AddDomainEvent(new OrderCreatedEvent(Id, UserName,
+                TotalPrice, DocumentNo.ToString(),
+                EmailAddress, ShippingAddress,
+                InvoiceAddress, FullName));
+            return this;
+        }
 
+        public Order DeletedOrder()
+        {
+            AddDomainEvent(new OrderDeletedEvent(Id));
+            return this;
+        }
     }
 }

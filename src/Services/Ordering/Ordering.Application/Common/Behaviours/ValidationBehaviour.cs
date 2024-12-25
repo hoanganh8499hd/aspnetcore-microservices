@@ -37,5 +37,10 @@ namespace Ordering.Application.Common.Behaviours
                 throw new ValidationException(failures);
             return await next();
         }
+
+        public Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

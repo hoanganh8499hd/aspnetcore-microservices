@@ -38,5 +38,22 @@ namespace Ordering.Application.Common.Behaviours
 
             return response;
         }
+
+        public Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
+        {
+            _timer.Start();
+            var response = next();
+            _timer.Stop();
+
+            var elapsedMilliseconds = _timer.ElapsedMilliseconds;
+
+            if (elapsedMilliseconds <= 5000) return response;
+
+            var requestName = typeof(TRequest).Name;
+            _logger.LogWarning("Application Long Running Request: {Name} ({ElapsedMilliseconds} milliseconds) {@Request}",
+                requestName, elapsedMilliseconds, request);
+
+            return response;
+        }
     }
 }

@@ -12,7 +12,6 @@ namespace Basket.API.Entities
         [Required]
         public string LastName { get; set; }
         [Required]
-        [EmailAddress]
         public string EmailAddress { get; set; }
         [Required]
         public string ShippingAddress { get; set; }

@@ -2,7 +2,7 @@
 {
     public class Cart
     {
-        public string Username { get; set; }
+        public string UserName { get; set; }
         public string EmailAddress { get; set; }
 
         public List<CartItem> Items { get; set; } = new();
@@ -13,7 +13,7 @@
 
         public Cart(string username)
         {
-            Username = username;
+            UserName = username;
         }
 
         public decimal TotalPrice => Items.Sum(item => item.ItemPrice * item.Quantity);

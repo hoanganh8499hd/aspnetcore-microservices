@@ -32,5 +32,19 @@ namespace Ordering.Application.Common.Behaviours
                 throw;
             }
         }
+
+        public Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
+        {
+            try
+            {
+                return next();
+            }
+            catch (Exception ex)
+            {
+                var requestName = typeof(TRequest).Name;
+                _logger.LogError(ex, "Application Request: Unhandled Exception for Request {Name} {@Request}", requestName, request);
+                throw;
+            }
+        }
     }
 }
