@@ -1,7 +1,12 @@
-using MediatR;
+﻿using MediatR;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Contracts.Common.Events;
-
-public abstract class BaseEvent : INotification
+namespace Contracts.Common.Events
 {
+    public abstract record BaseEvent : INotification;
+
 }

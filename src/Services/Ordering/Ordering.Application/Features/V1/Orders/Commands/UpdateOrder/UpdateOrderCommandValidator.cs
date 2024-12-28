@@ -1,12 +1,18 @@
-using FluentValidation;
+﻿using FluentValidation;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Ordering.Application.Features.V1.Orders;
-
-public class UpdateOrderCommandValidator : AbstractValidator<UpdateOrderCommand>
+namespace Ordering.Application.Features.V1.Orders.Commands.UpdateOrder
 {
-    public UpdateOrderCommandValidator()
+    public class UpdateOrderCommandValidator : AbstractValidator<UpdateOrderCommand>
     {
-        RuleFor(p => p.Id)
-            .NotEmpty().WithMessage("{Id} is required.");
+        public UpdateOrderCommandValidator()
+        {
+            RuleFor(p => p.Id).NotEmpty().WithMessage("{Id} is required....");
+        }
     }
+
 }

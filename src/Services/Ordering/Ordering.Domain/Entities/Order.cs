@@ -9,12 +9,11 @@ using Contracts.Domains;
 using Ordering.Domain.Enums;
 using Ordering.Domain.OrderAggregate.Events;
 using Contracts.Common.Events;
-using Contracts.Common.Interfaces;
 
 namespace Ordering.Domain.Entities
 {
 
-    public class Order : AuditableEventEntity<long>, IEventEntity
+    public class Order : AuditableEventEntity<long>
     {
         [Required]
         [Column(TypeName = "nvarchar(150)")]
@@ -49,7 +48,7 @@ namespace Ordering.Domain.Entities
         [NotMapped]
         public string FullName => FirstName + " " + LastName;
 
-        public Order AddedOrder()
+        public Order AddOrder()
         {
             AddDomainEvent(new OrderCreatedEvent(Id, UserName,
                 TotalPrice, DocumentNo.ToString(),
@@ -58,10 +57,11 @@ namespace Ordering.Domain.Entities
             return this;
         }
 
-        public Order DeletedOrder()
+        public Order DeleteOrder()
         {
             AddDomainEvent(new OrderDeletedEvent(Id));
             return this;
         }
+
     }
 }

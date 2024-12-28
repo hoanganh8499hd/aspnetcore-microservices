@@ -15,7 +15,7 @@ builder.Services.ConfigureRedis(builder.Configuration);
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile(new MappingProfile()));
 
-
+builder.Services.ConfigureServices();
 //Mass Transit
 builder.Services.ConfigureMassTransit();
 

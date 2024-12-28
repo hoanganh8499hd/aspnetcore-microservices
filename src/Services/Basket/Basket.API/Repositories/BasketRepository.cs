@@ -31,18 +31,18 @@ namespace Basket.API.Repositories
 
         public async Task<Cart> UpdateBasket(Cart cart, DistributedCacheEntryOptions options = null)
         {
-            _logger.Information($"BEGIN: UpdateBasket for {cart.UserName}");
+            _logger.Information($"BEGIN: UpdateBasket for {cart.Username}");
 
             if (options != null)
-                await _redisCacheService.SetStringAsync(cart.UserName,
+                await _redisCacheService.SetStringAsync(cart.Username,
                     _serializeService.Serialize(cart), options);
             else
-                await _redisCacheService.SetStringAsync(cart.UserName,
+                await _redisCacheService.SetStringAsync(cart.Username,
                     _serializeService.Serialize(cart));
 
-            _logger.Information($"END: UpdateBasket for {cart.UserName}");
+            _logger.Information($"END: UpdateBasket for {cart.Username}");
 
-            return await GetBasketByUserName(cart.UserName);
+            return await GetBasketByUserName(cart.Username);
         }
 
         public async Task<bool> DeleteBasketFromUserName(string username)

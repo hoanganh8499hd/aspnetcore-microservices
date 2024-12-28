@@ -1,40 +1,46 @@
-using AutoMapper;
+﻿using AutoMapper;
 using MediatR;
 using Ordering.Application.Common.Interfaces;
 using Ordering.Domain.Entities;
-using Serilog;
 using Shared.SeedWork;
+using Serilog;
 
-namespace Ordering.Application.Features.V1.Orders;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, ApiResult<long>>
+namespace Ordering.Application.Features.V1.Orders.Commands.CreateOrder
 {
-    private readonly IOrderRepository _orderRepository;
-    private readonly IMapper _mapper;
-    private readonly ILogger _logger;
-
-    public CreateOrderCommandHandler(IOrderRepository orderRepository,
-        IMapper mapper,
-        ILogger logger)
+    internal class CreateOrderCommandHandler: IRequestHandler<CreateOrderCommand, ApiResult<long>>
     {
-        _orderRepository = orderRepository ?? throw new ArgumentNullException(nameof(orderRepository));
-        _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
+        private readonly IOrderRepository _orderRepository;
+        private readonly IMapper _mapper;
+        private readonly ILogger _logger;
 
-    private const string MethodName = "CreateOrderCommandHandler";
+        public CreateOrderCommandHandler(IOrderRepository orderRepository, IMapper mapper, ILogger logger)
+        {
+            _orderRepository = orderRepository;
+            _mapper = mapper;
+            _logger = logger;
+        }
 
-    public async Task<ApiResult<long>> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
-    {
-        _logger.Information($"BEGIN: {MethodName} - Username: {request.UserName}");
-        var orderEntity = _mapper.Map<Order>(request);
-        _orderRepository.CreateOrder(orderEntity);
-        orderEntity.AddedOrder();
-        await _orderRepository.SaveChangeAsync();
-        
-        _logger.Information($"Order {orderEntity.Id} - Document No: {orderEntity.DocumentNo} was successfully created.");
+        private const string MethodName = "CreateOrderCommandHandler";
 
-        _logger.Information($"END: {MethodName} - Username: {request.UserName}");
-        return new ApiSuccessResult<long>(orderEntity.Id);
+        public async Task<ApiResult<long>> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
+        {
+            _logger.Information($"BEGIN: {MethodName} - UserName: {request.UserName}");
+
+            var orderEntity = _mapper.Map<Order>(request);
+            _orderRepository.CreateOrder(orderEntity);
+            orderEntity.AddOrder();
+            await _orderRepository.SaveChangeAsync();
+
+            _logger.Information($"Order {orderEntity.Id} - Document No: {orderEntity.DocumentNo} was successfully created.");
+            _logger.Information($"END: {MethodName} - Username: {request.UserName}");
+
+            return new ApiSuccessResult<long>(orderEntity.Id);
+        }
     }
 }

@@ -1,37 +1,46 @@
-using MediatR;
+﻿using MediatR;
 using Ordering.Application.Common.Exceptions;
 using Ordering.Application.Common.Interfaces;
 using Ordering.Domain.Entities;
 using Serilog;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Ordering.Application.Features.V1.Orders;
-
-public class DeleteOrderCommandHandler : IRequestHandler<DeleteOrderCommand>
+namespace Ordering.Application.Features.V1.Orders.Commands.DeleteOrder
 {
-    private readonly IOrderRepository _orderRepository;
-    private readonly ILogger _logger;
-
-    public DeleteOrderCommandHandler(IOrderRepository orderRepository, ILogger logger)
+    public class DeleteOrderCommandHandler : IRequestHandler<DeleteOrderCommand>
     {
-        _orderRepository = orderRepository ?? throw new ArgumentNullException(nameof(orderRepository));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
-    
-    public async Task<Unit> Handle(DeleteOrderCommand request, CancellationToken cancellationToken)
-    {
-        var orderEntity = await _orderRepository.GetByIdAsync(request.Id);
-        if (orderEntity == null) throw new NotFoundException(nameof(Order), request.Id);
-        _orderRepository.DeleteOrder(orderEntity);
-        orderEntity.DeletedOrder();
-        await _orderRepository.SaveChangeAsync();
+        private readonly IOrderRepository _orderRepository;
+        private readonly ILogger _logger;
 
-        _logger.Information($"Order {orderEntity.Id} was successfully deleted.");
+        public DeleteOrderCommandHandler(IOrderRepository orderRepository, ILogger logger)
+        {
+            _orderRepository = orderRepository;
+            _logger = logger;
+        }
 
-        return Unit.Value;
+        private const string MethodName = "DeleteOrderCommandHandler";
+
+        public async Task<Unit> Handle(DeleteOrderCommand request, CancellationToken cancellationToken)
+        {
+            var orderEntity = await _orderRepository.GetByIdAsync(request.Id);
+            if (orderEntity is null) throw new NotFoundException(nameof(Order), request.Id);
+
+            _logger.Information($"BEGIN: {MethodName} - Order: {request.Id}");
+
+            _orderRepository.DeleteOrder(orderEntity);
+            orderEntity.DeleteOrder();
+            await _orderRepository.SaveChangeAsync();
+
+            _logger.Information($"Order {request.Id} was successfully deleted.");
+
+            _logger.Information($"END: {MethodName} - Order: {request.Id}");
+            return Unit.Value;
+
+        }
     }
 
-    Task IRequestHandler<DeleteOrderCommand>.Handle(DeleteOrderCommand request, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
 }

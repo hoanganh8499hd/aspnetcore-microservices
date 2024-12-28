@@ -1,13 +1,20 @@
-using MediatR;
+﻿using MediatR;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Ordering.Application.Features.V1.Orders;
-
-public class DeleteOrderCommand : IRequest
+namespace Ordering.Application.Features.V1.Orders.Commands.DeleteOrder
 {
-    public long Id { get; private set; }
-
-    public DeleteOrderCommand(long id)
+    public class DeleteOrderCommand : IRequest
     {
-        Id = id;
+        public long Id { get; private set; }
+
+        public DeleteOrderCommand(long id)
+        {
+            Id = id;
+        }
     }
+
 }
